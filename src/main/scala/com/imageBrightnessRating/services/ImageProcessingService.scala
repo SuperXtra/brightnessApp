@@ -3,11 +3,11 @@ package com.imageBrightnessRating.services
 import java.awt.Image
 import java.awt.image.{BufferedImage, ConvolveOp, Kernel}
 
+import com.imageBrightnessRating.utils.ImageProcessingTypes.{Brightnesses, Pixel, ProcessedImages}
+
 import scala.collection.parallel.immutable.ParVector
 
 object ImageProcessingService {
-
-  type Pixel = (Int, Int)
 
   /**
     * Calculate average brightness of a image
@@ -20,18 +20,20 @@ object ImageProcessingService {
 
     val pixels : ParVector[Pixel] = ((0 until width) zip (0 until height)).toVector.par
 
-    val averageBrightness = Math.abs(100 - (pixels.map(getPixelBrightness(_,image))
-                                  .foldLeft(0.0)(_ + _) / pixels.length)
-                                  .toInt)
+    val brightnessScores : Brightnesses = for {
+      pixel <- pixels
+    } yield 100 - getPixelBrightness(pixel, image)
 
-    averageBrightness
+    val averageBrightness : Double = brightnessScores.foldLeft(0.0)(_ + _) / brightnessScores.length
+
+    Math.abs(averageBrightness.toInt)
   }
 
   /**
     * Returns the brightness of specified by x and y pixel on image
     *
     * */
-  def getPixelBrightness(pixel: (Int, Int), image: BufferedImage): Double = {
+  def getPixelBrightness(pixel: Pixel, image: BufferedImage): Double = {
     val (x, y) = pixel
     val color = image.getRGB(x, y)
     val red = color & 0x00ff0000 >> 16
@@ -47,7 +49,6 @@ object ImageProcessingService {
   def blurImage(image: BufferedImage): BufferedImage = {
 
     val kernel = new Kernel(2, 2, Array.fill(2 * 2)(1f / 2f))
-
     val op = new ConvolveOp(kernel)
 
     val bufferedImage = op.filter(image, null)
@@ -76,13 +77,14 @@ object ImageProcessingService {
     * Reduces the size to 32x32 and blurs collection of images
     *
     * */
-  def prepareImages(images : (ParVector[BufferedImage], ParVector[String])) : (ParVector[BufferedImage], ParVector[String]) = {
+  def prepareImages(inputImages : ProcessedImages) : ProcessedImages = {
 
-    val processedImages : (ParVector[BufferedImage], ParVector[String]) = images
-      images._1
-        .map(sizeReduction(_, 32))
-        .map(blurImage)
-    processedImages
+    val processed = inputImages.images
+      .map(sizeReduction(_, 32))
+      .map(blurImage)
+
+    new ProcessedImages(
+      images = processed,
+      fileNames = inputImages.fileNames)
   }
-
 }

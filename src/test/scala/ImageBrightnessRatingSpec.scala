@@ -1,10 +1,8 @@
-import java.awt.image.BufferedImage
 import java.io.File
 
 import com.imageBrightnessRating.services.{FileSystemService, ImageProcessingService, ResultsProcessingService}
+import com.imageBrightnessRating.utils.ImageProcessingTypes.{ImageNames, ProcessedImages}
 import org.scalatest.FlatSpec
-
-import scala.collection.parallel.immutable.ParVector
 
 class ImageBrightnessRatingSpec extends FlatSpec {
 
@@ -32,11 +30,11 @@ class ImageBrightnessRatingSpec extends FlatSpec {
   val imagesNames : Vector[String] = new File(testInputPath).listFiles.map(_.getName()).toVector
   val darkImages = imagesNames.diff(lightImages)
   val acceptedExtensions = List("jpg", "jpeg", "png")
-  val images : (ParVector[BufferedImage], ParVector[String]) = FileSystemService.readImages(testInputPath, acceptedExtensions)
-
+  val images : ProcessedImages = FileSystemService.readImages(testInputPath, acceptedExtensions)
+  val testThreshold : Int = 40
   // Act
-  val preparedImages : (ParVector[BufferedImage], ParVector[String]) = ImageProcessingService.prepareImages(images)
-  val updatedImageNames : ParVector[String] = ResultsProcessingService.checkBrightness(preparedImages)("")(40)
+  val preparedImages : ProcessedImages = ImageProcessingService.prepareImages(images)
+  val updatedImageNames : ImageNames = ResultsProcessingService.checkBrightness(preparedImages)("")(testThreshold)
 
   // Assert
   "Light images" should "be categorised as light" in {

@@ -1,14 +1,14 @@
 import java.io.File
 
-import ImageBrightnessRatingApp.loadConfig
+import com.imageBrightnessRating.configuration.ImageBrightnessAppConfiguration
 
 object TestUtils {
 
   def getTestPaths() = {
-    val (testInputPath, testOutputPath, _, _,_) = loadConfig("test.conf")
+    val testImageBrightnessAppConfig = ImageBrightnessAppConfiguration.loadConfig("test.conf")
     val resourcesDirectory = new File("src/test/resources").getAbsolutePath()
-    val fullInputPath = s"$resourcesDirectory$testInputPath"
-    val fullOutputPath = s"$resourcesDirectory$testOutputPath"
+    val fullInputPath = s"$resourcesDirectory${testImageBrightnessAppConfig.inputDirectory}"
+    val fullOutputPath = s"$resourcesDirectory${testImageBrightnessAppConfig.outputDirectory}"
     (fullInputPath, fullOutputPath)
   }
 

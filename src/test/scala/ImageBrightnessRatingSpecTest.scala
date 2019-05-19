@@ -5,7 +5,7 @@ import com.imageBrightnessRating.services.{FileSystemService, ImageProcessingSer
 import com.imageBrightnessRating.utils.ImageProcessingTypes.{ImageNames, ProcessedImages}
 import org.scalatest.FlatSpec
 
-class ImageBrightnessRatingSpec extends FlatSpec {
+class ImageBrightnessRatingSpecTest extends FlatSpec {
 
   val lightImages = List(
     "aidan_gillen.jpg",

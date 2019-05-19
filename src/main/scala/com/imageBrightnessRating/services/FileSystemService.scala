@@ -25,17 +25,23 @@ object FileSystemService {
 
     val EXTENSION_PATTERN = s"[.](${acceptedExtensions.toArray.mkString("|")})".r
 
-    val files = new File(inputPath).listFiles
+    try{
 
-    if (files == null) throw new IllegalArgumentException(s"Exception while reading images. Files collected from $inputPath are empty.")
+      val files = new File(inputPath).listFiles
 
-    val filePaths : Files = files.filter(
-      x => Try(EXTENSION_PATTERN.findAllIn(x.getName).length.equals(1)).getOrElse(false)
-    ).toVector.par
+      val filePaths : Files = files.filter(
+        x => Try(EXTENSION_PATTERN.findAllIn(x.getName).length.equals(1)).getOrElse(false)
+      ).toVector.par
 
-    new ProcessedImages(
-      images = filePaths.map(ImageIO.read),
-      fileNames = filePaths.map(x=>x.getName).toVector.par
-    )
+      if (filePaths.isEmpty) throw new IllegalArgumentException(s"Exception while reading images. Files collected from $inputPath are empty.")
+
+      new ProcessedImages(
+        images = filePaths.map(ImageIO.read),
+        fileNames = filePaths.map(x=>x.getName).toVector.par
+      )
+    } catch {
+      case e: NullPointerException => throw new IllegalArgumentException(s"Exception while reading images. $inputPath does not exist.")
+      case e: IllegalArgumentException => throw new IllegalArgumentException(s"Exception while reading images. Files collected from $inputPath are empty.")
+    }
   }
 }

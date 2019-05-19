@@ -3,16 +3,12 @@ import org.scalatest._
 
 class FileSystemServiceTest extends FunSuite {
 
-  test("ImageProcessingService.readImages - Missing extension") {
-    val testPath : String = "src/test/resources/test_no_extension"
-    val testAcceptedExtensions : List[String] = List("jpg")
-    assertThrows[IllegalArgumentException](FileSystemService.readImages(testPath, testAcceptedExtensions))
-  }
-
-
   test("ImageProcessingService.readImages - Non existing path") {
-    val testPath : String = "src/test/resources/non_existing_folder"
+    val testPath : String = ".src/test/resources/non_existing_folder"
     val testAcceptedExtensions : List[String] = List("jpg")
-    assertThrows[IllegalArgumentException](FileSystemService.readImages(testPath, testAcceptedExtensions))
+    val exception = intercept[IllegalArgumentException]{
+      FileSystemService.readImages(testPath, testAcceptedExtensions)
+    }
+    assert(exception.getMessage.equalsIgnoreCase(s"Exception while reading images. $testPath does not exist."))
   }
 }

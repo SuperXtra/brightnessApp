@@ -33,15 +33,12 @@ object FileSystemService {
         x => Try(EXTENSION_PATTERN.findAllIn(x.getName).length.equals(1)).getOrElse(false)
       ).toVector.par
 
-      if (filePaths.isEmpty) throw new IllegalArgumentException(s"Exception while reading images. Files collected from $inputPath are empty.")
-
       new ProcessedImages(
         images = filePaths.map(ImageIO.read),
         fileNames = filePaths.map(x=>x.getName).toVector.par
       )
     } catch {
       case e: NullPointerException => throw new IllegalArgumentException(s"Exception while reading images. $inputPath does not exist.")
-      case e: IllegalArgumentException => throw new IllegalArgumentException(s"Exception while reading images. Files collected from $inputPath are empty.")
     }
   }
 }

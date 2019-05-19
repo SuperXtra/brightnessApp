@@ -1,5 +1,6 @@
 import java.io.File
 
+import com.imageBrightnessRating.model.CheckBrightnessJob
 import com.imageBrightnessRating.services.{FileSystemService, ImageProcessingService, ResultsProcessingService}
 import com.imageBrightnessRating.utils.ImageProcessingTypes.{ImageNames, ProcessedImages}
 import org.scalatest.FlatSpec
@@ -25,18 +26,26 @@ class ImageBrightnessRatingSpec extends FlatSpec {
     "sopie_turner.jpg"
   )
 
-  // Arrange
   val (testInputPath, testOutputPath) = TestUtils.getTestPaths()
-  val imagesNames : Vector[String] = new File(testInputPath).listFiles.map(_.getName()).toVector
-  val darkImages = imagesNames.diff(lightImages)
-  val acceptedExtensions = List("jpg", "jpeg", "png")
-  val images : ProcessedImages = FileSystemService.readImages(testInputPath, acceptedExtensions)
-  val testThreshold : Int = 40
-  // Act
-  val preparedImages : ProcessedImages = ImageProcessingService.prepareImages(images)
-  val updatedImageNames : ImageNames = ResultsProcessingService.checkBrightness(preparedImages)("")(testThreshold)
+  val imagesNames : ImageNames = new File(testInputPath).listFiles.map(_.getName()).toVector.par
+  val darkImageNames : ImageNames = imagesNames.diff(lightImages)
+  val testAcceptedExtensions : List[String] = List("jpg")
+  val testThreshold : Int = 60
 
-  // Assert
+  val testImages : ProcessedImages = FileSystemService.readImages(testInputPath, testAcceptedExtensions)
+  val testPreparedImages : ProcessedImages = ImageProcessingService.prepareImages(testImages)
+
+  val testCheckBrightnessJob = new CheckBrightnessJob(
+    processedImages =  testPreparedImages,
+    acceptedExceptions = testAcceptedExtensions,
+    outputPath = new String(),
+    threshold = testThreshold
+  )
+
+  val updatedImageNames : ImageNames = ResultsProcessingService.checkBrightness(testCheckBrightnessJob)
+
+  // Assertions:
+
   "Light images" should "be categorised as light" in {
     val resultsMap = (imagesNames zip updatedImageNames).toMap
     lightImages.forall(lightImage => resultsMap(lightImage).contains("light"))
@@ -44,8 +53,7 @@ class ImageBrightnessRatingSpec extends FlatSpec {
 
   "Dark images" should "be categorised as dark" in {
     val resultsMap = (imagesNames zip updatedImageNames).toMap
-    darkImages.forall(darkImage => resultsMap(darkImage).contains("dark"))
+    darkImageNames.forall(darkImage => resultsMap(darkImage).contains("dark"))
   }
-
 
 }

@@ -5,6 +5,8 @@ import java.io.File
 import com.imageBrightnessRating.utils.ImageProcessingTypes.{Files, ImageNames, Images, ProcessedImages}
 import javax.imageio.ImageIO
 
+import scala.util.Try
+
 object FileSystemService {
 
   def cleanDirectory(path: String): Unit = {
@@ -23,8 +25,12 @@ object FileSystemService {
 
     val EXTENSION_PATTERN = s"[.](${acceptedExtensions.toArray.mkString("|")})".r
 
-    val filePaths : Files = new File(inputPath).listFiles.filter(
-      x => EXTENSION_PATTERN.findAllIn(x.getName).length.equals(1)
+    val files = new File(inputPath).listFiles
+
+    if (files == null) throw new IllegalArgumentException(s"Exception while reading images. Files collected from $inputPath are empty.")
+
+    val filePaths : Files = files.filter(
+      x => Try(EXTENSION_PATTERN.findAllIn(x.getName).length.equals(1)).getOrElse(false)
     ).toVector.par
 
     new ProcessedImages(
